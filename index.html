@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NAVER</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- Header Top Bar -->
+  <header class="header">
+    <div class="header-container">
+      <div class="header-left">
+        <button class="icon-btn menu-btn" id="menuToggle" aria-label="메뉴 열기" title="바로가기 메뉴">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+        <button class="pay-btn" title="네이버 페이">
+          <span class="pay-circle">pay</span>
+        </button>
+      </div>
+
+      <div class="header-right">
+        <button class="icon-btn notif-btn" id="notifBtn" aria-label="알림" title="알림">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+          </svg>
+          <span class="notif-badge"></span>
+        </button>
+        <button class="icon-btn shopping-btn" id="cartBtn" aria-label="장바구니" title="장바구니">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <path d="M16 10a4 4 0 0 1-8 0"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="main-layout">
+    <!-- Search Section -->
+    <section class="search-section">
+      <div class="search-box-wrapper" id="searchBoxWrapper">
+        <form class="search-box" id="searchForm" action="https://search.naver.com/search.naver" method="GET" target="_blank">
+          <div class="naver-logo">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M3 3h5.4l7.6 11.2V3H21v18h-5.4L8 9.8V21H3V3z" fill="#03C75A"/>
+            </svg>
+          </div>
+          <input 
+            type="text" 
+            name="query" 
+            id="searchInput" 
+            class="search-input" 
+            placeholder="검색어를 입력해 주세요." 
+            autocomplete="off"
+            spellcheck="false"
+          >
+          <div class="search-tools">
+            <button type="button" class="tool-btn keyboard-btn" id="keyboardBtn" title="가상 키보드">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#777" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="4" width="20" height="16" rx="2.5" ry="2.5"></rect>
+                <line x1="6" y1="8" x2="6.01" y2="8" stroke-width="2.5"></line>
+                <line x1="10" y1="8" x2="10.01" y2="8" stroke-width="2.5"></line>
+                <line x1="14" y1="8" x2="14.01" y2="8" stroke-width="2.5"></line>
+                <line x1="18" y1="8" x2="18.01" y2="8" stroke-width="2.5"></line>
+                <line x1="6" y1="12" x2="6.01" y2="12" stroke-width="2.5"></line>
+                <line x1="10" y1="12" x2="10.01" y2="12" stroke-width="2.5"></line>
+                <line x1="14" y1="12" x2="14.01" y2="12" stroke-width="2.5"></line>
+                <line x1="18" y1="12" x2="18.01" y2="12" stroke-width="2.5"></line>
+                <line x1="7" y1="16" x2="17" y2="16" stroke-width="2"></line>
+              </svg>
+            </button>
+            <button type="button" class="ai-search-btn" id="aiSearchBtn" title="네이버 AI 검색">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+                <path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z" fill="url(#sparkle-grad)"/>
+                <defs>
+                  <linearGradient id="sparkle-grad" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+                    <stop stop-color="#38bdf8"/>
+                    <stop offset="1" stop-color="#0284c7"/>
+                  </linearGradient>
+                </defs>
+              </svg>
+              <span>AI</span>
+            </button>
+          </div>
+          <button type="submit" class="search-submit-btn" aria-label="검색">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#03C75A" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="7"></circle>
+              <line x1="21" y1="21" x2="16.5" y2="16.5"></line>
+            </svg>
+          </button>
+        </form>
+
+        <!-- Autocomplete / Recent Search Dropdown -->
+        <div class="search-dropdown" id="searchDropdown">
+          <div class="dropdown-header">
+            <button type="button" class="tab active" id="tabRecent">최근 검색어</button>
+            <button type="button" class="tab" id="tabTrending">인기 검색어</button>
+          </div>
+          <div class="dropdown-content" id="recentSearchList">
+            <div class="search-item">
+              <span class="keyword">오늘 날씨</span>
+              <button type="button" class="delete-keyword">×</button>
+            </div>
+            <div class="search-item">
+              <span class="keyword">네이버 쇼핑 페스타</span>
+              <button type="button" class="delete-keyword">×</button>
+            </div>
+            <div class="search-item">
+              <span class="keyword">실시간 프로야구 중계</span>
+              <button type="button" class="delete-keyword">×</button>
+            </div>
+            <div class="search-item">
+              <span class="keyword">환율 조회</span>
+              <button type="button" class="delete-keyword">×</button>
+            </div>
+          </div>
+          <div class="dropdown-footer">
+            <button type="button" class="clear-all-btn" id="clearKeywords">검색어 전체삭제</button>
+            <button type="button" class="close-dropdown-btn" id="closeDropdown">닫기</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Service Shortcuts Row -->
+    <section class="shortcuts-section">
+      <ul class="shortcuts-list">
+        <li class="shortcut-item">
+          <a href="https://mail.naver.com" target="_blank" class="shortcut-link">
+            <div class="icon-circle icon-mail">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <rect x="2" y="4" width="20" height="16" rx="4" fill="#03C75A"/>
+                <path d="M4 6L12 13L20 6" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="18" cy="7" r="2.5" fill="#FFFFFF"/>
+                <text x="18" y="8" font-size="3" font-weight="900" fill="#03C75A" text-anchor="middle" dominant-baseline="middle">N</text>
+              </svg>
+            </div>
+            <span class="shortcut-name">메일</span>
+          </a>
+        </li>
+        <li class="shortcut-item">
+          <a href="https://section.cafe.naver.com" target="_blank" class="shortcut-link">
+            <div class="icon-circle icon-cafe">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M4 8h12v7a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V8z" fill="#03C75A"/>
+                <path d="M16 10h2a3 3 0 0 1 0 6h-2v-6z" stroke="#03C75A" stroke-width="2" fill="none"/>
+                <path d="M7 4c1 1 1 2 0 3M11 4c1 1 1 2 0 3" stroke="#03C75A" stroke-width="1.8" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <span class="shortcut-name">카페</span>
+          </a>
+        </li>
+        <li class="shortcut-item">
+          <a href="https://section.blog.naver.com" target="_blank" class="shortcut-link">
+            <div class="icon-circle icon-blog">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <rect x="3" y="3" width="18" height="18" rx="5" fill="#03C75A"/>
+                <text x="12" y="16.5" font-size="14" font-weight="900" font-family="'Pretendard', sans-serif" fill="#FFFFFF" text-anchor="middle">b|</text>
+              </svg>
+            </div>
+            <span class="shortcut-name">블로그</span>
+          </a>
+        </li>
+        <li class="shortcut-item">
+          <a href="https://shopping.naver.com" target="_blank" class="shortcut-link">
+            <div class="icon-circle icon-shopping">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <rect x="3" y="3" width="18" height="18" rx="5" fill="#8848F7"/>
+                <path d="M7 9h10l-1 9H8L7 9z" fill="#FFFFFF" fill-opacity="0.25"/>
+                <path d="M10 9V7a2 2 0 0 1 4 0v2" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round"/>
+                <text x="12" y="15" font-size="8" font-weight="900" fill="#FFFFFF" text-anchor="middle">N+</text>
+              </svg>
+            </div>
+            <span class="shortcut-name">쇼핑</span>
+          </a>
+        </li>
+        <li class="shortcut-item">
+          <a href="https://news.naver.com" target="_blank" class="shortcut-link">
+            <div class="icon-circle icon-news">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <rect x="3" y="4" width="18" height="16" rx="3" fill="#2E7DFF"/>
+                <rect x="6" y="7" width="12" height="3" rx="1" fill="#FFFFFF"/>
+                <line x1="6" y1="13" x2="12" y2="13" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round"/>
+                <line x1="6" y1="16" x2="15" y2="16" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <span class="shortcut-name">뉴스</span>
+          </a>
+        </li>
+        <li class="shortcut-item">
+          <a href="https://finance.naver.com" target="_blank" class="shortcut-link">
+            <div class="icon-circle icon-stock">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M3 19h18" stroke="#333333" stroke-width="1.5" stroke-linecap="round"/>
+                <path d="M4 15l5-6 4 3 6-7" stroke="#FF4343" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                <polyline points="15 5 19 5 19 9" stroke="#FF4343" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <span class="shortcut-name">증권</span>
+          </a>
+        </li>
+        <li class="shortcut-item">
+          <a href="https://land.naver.com" target="_blank" class="shortcut-link">
+            <div class="icon-circle icon-land">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M3 10.5L12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1v-9.5z" fill="#03C75A"/>
+              </svg>
+            </div>
+            <span class="shortcut-name">부동산</span>
+          </a>
+        </li>
+        <li class="shortcut-item">
+          <a href="https://map.naver.com" target="_blank" class="shortcut-link">
+            <div class="icon-circle icon-map">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M12 2C7.86 2 4.5 5.36 4.5 9.5c0 5.25 7.5 12.5 7.5 12.5s7.5-7.25 7.5-12.5C19.5 5.36 16.14 2 12 2z" fill="#03C75A"/>
+                <circle cx="12" cy="9.5" r="3.5" fill="#FFFFFF"/>
+                <text x="12" y="11.5" font-size="5" font-weight="900" fill="#03C75A" text-anchor="middle">N</text>
+              </svg>
+            </div>
+            <span class="shortcut-name">지도</span>
+          </a>
+        </li>
+        <li class="shortcut-item">
+          <a href="https://comic.naver.com" target="_blank" class="shortcut-link">
+            <div class="icon-circle icon-webtoon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <rect x="3" y="3" width="18" height="18" rx="5" fill="#00D564"/>
+                <text x="12" y="11" font-size="5" font-weight="900" fill="#FFFFFF" text-anchor="middle">WEB</text>
+                <text x="12" y="17" font-size="5" font-weight="900" fill="#FFFFFF" text-anchor="middle">TOON</text>
+              </svg>
+            </div>
+            <span class="shortcut-name">웹툰</span>
+          </a>
+        </li>
+        <li class="shortcut-item">
+          <a href="https://chzzk.naver.com" target="_blank" class="shortcut-link">
+            <div class="icon-circle icon-chzzk">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <rect x="3" y="3" width="18" height="18" rx="5" fill="#000000"/>
+                <path d="M7 7h10l-6 6h6v4H7l6-6H7V7z" fill="#00FFA3"/>
+              </svg>
+            </div>
+            <span class="shortcut-name">치지직</span>
+          </a>
+        </li>
+        <li class="shortcut-item">
+          <button type="button" class="shortcut-link more-btn" id="moreServicesBtn" title="서비스 더보기">
+            <div class="icon-circle icon-more">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <circle cx="6" cy="12" r="1.8" fill="#888888"/>
+                <circle cx="12" cy="12" r="1.8" fill="#888888"/>
+                <circle cx="18" cy="12" r="1.8" fill="#888888"/>
+              </svg>
+            </div>
+            <span class="shortcut-name">더보기</span>
+          </button>
+        </li>
+      </ul>
+    </section>
+
+    <!-- Top Promotion Banner (Hero Campaign) -->
+    <section class="hero-banner-section">
+      <div class="hero-banner">
+        <!-- 3 Bracelet images -->
+        <div class="banner-bracelets">
+          <div class="bracelet-card">
+            <div class="bracelet-preview br-brown">
+              <div class="bracelet-detail"></div>
+            </div>
+          </div>
+          <div class="bracelet-card">
+            <div class="bracelet-preview br-red">
+              <div class="bracelet-detail"></div>
+            </div>
+          </div>
+          <div class="bracelet-card">
+            <div class="bracelet-preview br-redwhite">
+              <div class="bracelet-detail"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="banner-center-text">
+          <p class="banner-sub">생명을 구하는 산림구조대와 함께</p>
+          <h2 class="banner-title">SAVE <span class="logo-circle">O</span>NE</h2>
+          <a href="#" class="banner-cta">
+            아이를 구하는 긴급구호 팔찌 신청하기 &gt;
+          </a>
+        </div>
+
+        <div class="banner-rescuer">
+          <div class="rescuer-photo">
+            <div class="rescuer-icon">
+              <svg width="80" height="80" viewBox="0 0 100 100" fill="none">
+                <circle cx="50" cy="35" r="22" fill="#D9534F"/>
+                <path d="M15 90c0-20 16-35 35-35s35 15 35 35H15z" fill="#C9302C"/>
+                <circle cx="50" cy="30" r="14" fill="#FFE0B2"/>
+                <rect x="42" y="22" width="16" height="6" rx="2" fill="#333"/>
+              </svg>
+            </div>
+            <span class="org-tag">세이브더칠드런</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Content 2-Column Grid -->
+    <section class="content-grid-section">
+      <!-- Left Column: News / Shopping / Entertainment Tabs & Content -->
+      <div class="content-left-col">
+        <!-- Main Nav Tabs -->
+        <nav class="content-tabs-nav">
+          <ul class="nav-tabs-list">
+            <li class="nav-tab-item">
+              <button class="nav-tab-btn" data-tab="news">뉴스스탠드 <span class="dot">·</span> 언론사편집</button>
+            </li>
+            <li class="nav-tab-item">
+              <button class="nav-tab-btn" data-tab="enter">엔터</button>
+            </li>
+            <li class="nav-tab-item">
+              <button class="nav-tab-btn" data-tab="sports">
+                스포츠 <span class="live-badge">LIVE</span>
+              </button>
+            </li>
+            <li class="nav-tab-item">
+              <button class="nav-tab-btn" data-tab="game">게임</button>
+            </li>
+            <li class="nav-tab-item">
+              <button class="nav-tab-btn" data-tab="economy">경제</button>
+            </li>
+            <li class="nav-tab-item active">
+              <button class="nav-tab-btn" data-tab="shopping">쇼핑투데이</button>
+            </li>
+          </ul>
+        </nav>
+
+        <!-- Tab Content Panels -->
+        <div class="tab-panels-container">
+          <!-- Shopping Tab Content (Active as shown in screenshot) -->
+          <div class="tab-panel active" id="tab-shopping">
+            <div class="sub-promo-bar">
+              <div class="promo-text-wrap">
+                <span class="promo-tag">FW 프리뷰</span>
+                <span class="bar-divider">|</span>
+                <span class="promo-desc">설레는 신상 구매에 고민을 덜어줄 혜택! 쿠폰 증정+릴레이 특가</span>
+              </div>
+              <a href="https://shopping.naver.com" target="_blank" class="my-shopping-link">마이쇼핑 &gt;</a>
+            </div>
+
+            <!-- Product Card Grid (2x2 matching screenshot) -->
+            <div class="product-cards-grid">
+              <!-- Item 1: Charles & Keith -->
+              <div class="product-card">
+                <div class="product-thumb">
+                  <div class="thumb-img-wrapper">
+                    <!-- High quality shoes visual -->
+                    <div class="art-thumb shoes-mock">
+                      <div class="shoe-shape">👠</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="product-info">
+                  <span class="brand-name">찰스앤키스</span>
+                  <h4 class="product-title">베네시아 새틴보우 슬링백</h4>
+                  <div class="price-row">
+                    <span class="price-val">89,900원</span>
+                  </div>
+                  <span class="seller-tag">찰스앤키스</span>
+                </div>
+              </div>
+
+              <!-- Item 2: Dorothy Jewelry -->
+              <div class="product-card">
+                <div class="product-thumb">
+                  <div class="thumb-img-wrapper">
+                    <!-- High quality jewelry visual -->
+                    <div class="art-thumb jewelry-mock">
+                      <div class="jewelry-chain"></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="product-info">
+                  <span class="brand-name">도로시 이태리 주얼리</span>
+                  <h4 class="product-title">18K 로프체인 2중 택1</h4>
+                  <div class="price-row">
+                    <span class="discount-rate">44%</span>
+                    <span class="price-val">459,000원</span>
+                    <span class="original-price">819,000원</span>
+                  </div>
+                  <span class="seller-tag">도로시</span>
+                </div>
+              </div>
+
+              <!-- Item 3: Luxury Cardigan -->
+              <div class="product-card">
+                <div class="product-thumb">
+                  <div class="thumb-img-wrapper">
+                    <div class="art-thumb cardigan-mock">
+                      <div class="cardigan-shape">🧥</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="product-info">
+                  <span class="brand-name">고급스러운 무드 완성</span>
+                  <h4 class="product-title">모헤어 터치 브이넥 가디건</h4>
+                  <div class="price-row">
+                    <span class="discount-rate">32%</span>
+                    <span class="price-val">48,900원</span>
+                    <span class="original-price">72,000원</span>
+                  </div>
+                  <span class="seller-tag">어반클래식</span>
+                </div>
+              </div>
+
+              <!-- Item 4: Home Drain Cleaner -->
+              <div class="product-card">
+                <div class="product-thumb">
+                  <div class="thumb-img-wrapper">
+                    <div class="art-thumb cleaner-mock">
+                      <div class="cleaner-bubbles">🫧</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="product-info">
+                  <span class="brand-name">변기에 넣으면</span>
+                  <h4 class="product-title">싹~ 뚫리는 강력 발포 클리너</h4>
+                  <div class="price-row">
+                    <span class="discount-rate">50%</span>
+                    <span class="price-val">19,800원</span>
+                    <span class="original-price">39,600원</span>
+                  </div>
+                  <span class="seller-tag">리빙앤홈</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- News Tab Panel -->
+          <div class="tab-panel" id="tab-news">
+            <div class="sub-promo-bar">
+              <div class="promo-text-wrap">
+                <span class="promo-tag">주요 뉴스</span>
+                <span class="bar-divider">|</span>
+                <span class="promo-desc">실시간 언론사별 주요 종합 헤드라인</span>
+              </div>
+              <a href="https://news.naver.com" target="_blank" class="my-shopping-link">뉴스홈 &gt;</a>
+            </div>
+            <div class="news-list-grid">
+              <div class="news-item-card">
+                <span class="press-badge">연합뉴스</span>
+                <p class="news-title">코스피 3,100선 회복세, 기술주 중심으로 외인 순매수 유입</p>
+                <span class="news-time">10분 전</span>
+              </div>
+              <div class="news-item-card">
+                <span class="press-badge">조선일보</span>
+                <p class="news-title">올가을 역대급 쾌청 날씨 예보... 주말 나들이 명소 예약 급증</p>
+                <span class="news-time">25분 전</span>
+              </div>
+              <div class="news-item-card">
+                <span class="press-badge">중앙일보</span>
+                <p class="news-title">차세대 AI 스마트폰 신제품 발표, 온디바이스 기능 대폭 강화</p>
+                <span class="news-time">40분 전</span>
+              </div>
+              <div class="news-item-card">
+                <span class="press-badge">동아일보</span>
+                <p class="news-title">전기차 배터리 신기술 개발 성공, 주행거리 800km 돌파</p>
+                <span class="news-time">1시간 전</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sports Tab Panel -->
+          <div class="tab-panel" id="tab-sports">
+            <div class="sub-promo-bar">
+              <div class="promo-text-wrap">
+                <span class="promo-tag">스포츠 LIVE</span>
+                <span class="bar-divider">|</span>
+                <span class="promo-desc">2026 프로야구 및 해외 축구 실시간 경기 중계</span>
+              </div>
+              <a href="https://sports.news.naver.com" target="_blank" class="my-shopping-link">일정/결과 &gt;</a>
+            </div>
+            <div class="sports-live-cards">
+              <div class="match-card">
+                <div class="league">KBO 리그</div>
+                <div class="match-teams">
+                  <div class="team"><strong>LG 트윈스</strong> <span class="score">4</span></div>
+                  <span class="vs">vs</span>
+                  <div class="team"><strong>기아 타이거즈</strong> <span class="score">3</span></div>
+                </div>
+                <div class="match-status live">🔴 7회초 진행중</div>
+              </div>
+              <div class="match-card">
+                <div class="league">프리미어리그</div>
+                <div class="match-teams">
+                  <div class="team"><strong>토트넘</strong> <span class="score">2</span></div>
+                  <span class="vs">vs</span>
+                  <div class="team"><strong>아스널</strong> <span class="score">1</span></div>
+                </div>
+                <div class="match-status end">경기 종료</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Entertainment Panel -->
+          <div class="tab-panel" id="tab-enter">
+            <div class="sub-promo-bar">
+              <div class="promo-text-wrap">
+                <span class="promo-tag">연예 핫이슈</span>
+                <span class="bar-divider">|</span>
+                <span class="promo-desc">오늘의 방송 및 스타 인터뷰 독점 소식</span>
+              </div>
+            </div>
+            <div class="news-list-grid">
+              <div class="news-item-card">
+                <span class="press-badge">일간스포츠</span>
+                <p class="news-title">천만 영화 주역들의 깜짝 팬미팅 현장 성황리 개최</p>
+                <span class="news-time">15분 전</span>
+              </div>
+              <div class="news-item-card">
+                <span class="press-badge">스타뉴스</span>
+                <p class="news-title">신곡 음원차트 1위 올킬, 글로벌 투어 일정 전격 공개</p>
+                <span class="news-time">30분 전</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Game Panel -->
+          <div class="tab-panel" id="tab-game">
+            <div class="sub-promo-bar">
+              <div class="promo-text-wrap">
+                <span class="promo-tag">게임 소식</span>
+                <span class="bar-divider">|</span>
+                <span class="promo-desc">신작 출시 정보 및 e스포츠 대회 일정</span>
+              </div>
+            </div>
+            <div class="news-list-grid">
+              <div class="news-item-card">
+                <span class="press-badge">인벤</span>
+                <p class="news-title">글로벌 롤 챔피언십 본선 진출팀 확정, 결승전 일정 발표</p>
+                <span class="news-time">20분 전</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Economy Panel -->
+          <div class="tab-panel" id="tab-economy">
+            <div class="sub-promo-bar">
+              <div class="promo-text-wrap">
+                <span class="promo-tag">경제 브리핑</span>
+                <span class="bar-divider">|</span>
+                <span class="promo-desc">글로벌 증시 및 금리 동향 분석</span>
+              </div>
+            </div>
+            <div class="news-list-grid">
+              <div class="news-item-card">
+                <span class="press-badge">한국경제</span>
+                <p class="news-title">원/달러 환율 안정세 유지, 반도체 수출 실적 호조 지속</p>
+                <span class="news-time">12분 전</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Login Box & Ad Banner -->
+      <div class="content-right-col">
+        <!-- Login Card -->
+        <div class="login-card" id="loginCard">
+          <p class="login-prompt">네이버를 더 안전하고 편리하게 이용하세요</p>
+          <button type="button" class="naver-login-btn" id="openLoginModalBtn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M3 3h5.4l7.6 11.2V3H21v18h-5.4L8 9.8V21H3V3z" fill="#FFFFFF"/>
+            </svg>
+            <span>NAVER 로그인</span>
+          </button>
+          <div class="login-sub-links">
+            <a href="#" class="sub-link" id="findIdLink">아이디 찾기</a>
+            <span class="divider"></span>
+            <a href="#" class="sub-link" id="findPwLink">비밀번호 찾기</a>
+            <span class="divider"></span>
+            <a href="#" class="sub-link" id="signUpLink">회원가입</a>
+          </div>
+        </div>
+
+        <!-- Right Ad Banner (IS Dongseo) -->
+        <aside class="side-ad-banner">
+          <div class="ad-card-isdongseo">
+            <div class="ad-top-row">
+              <div class="ad-brand-logo">
+                <span class="is-logo">IS</span>
+                <span class="is-name">아이에스동서</span>
+              </div>
+              <span class="ad-badge">AD</span>
+            </div>
+
+            <div class="ad-main-content">
+              <p class="ad-tagline">프리미엄 시리즈의 위대한 정점!</p>
+              <div class="ad-giant-number">1521</div>
+              <div class="ad-bottom-info">
+                <span class="ad-project-title">그랑라크 <strong class="highlight">「에일린의 뜰」</strong></span>
+                <span class="ad-open-badge">9월 2일 OPEN(예정)</span>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        <!-- Right Side Mini Widget (Weather & Trend) -->
+        <div class="side-mini-widget">
+          <div class="widget-header">
+            <span class="widget-title">오늘의 날씨</span>
+            <span class="widget-city">서울 종로구</span>
+          </div>
+          <div class="weather-row">
+            <div class="weather-icon-temp">
+              <span class="weather-emoji">☀️</span>
+              <span class="temp">24.5°</span>
+            </div>
+            <div class="weather-detail">
+              <span class="desc">맑음 · 미세먼지 <strong class="good">좋음</strong></span>
+              <span class="sub">체감 25.1° / 어제보다 1.2° 높음</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Login Modal Popup -->
+  <div class="modal-overlay" id="loginModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="naver-brand">
+          <span class="brand-n">N</span>
+          <span class="brand-text">NAVER</span>
+        </div>
+        <button class="modal-close-btn" id="closeLoginModal" aria-label="닫기">×</button>
+      </div>
+      <form class="modal-login-form" id="modalLoginForm">
+        <div class="input-group">
+          <input type="text" id="loginId" placeholder="아이디" required>
+        </div>
+        <div class="input-group">
+          <input type="password" id="loginPw" placeholder="비밀번호" required>
+        </div>
+        <div class="keep-login-row">
+          <label class="checkbox-label">
+            <input type="checkbox" id="keepLoggedIn" checked>
+            <span>로그인 상태 유지</span>
+          </label>
+          <span class="ip-security">IP보안 <strong>ON</strong></span>
+        </div>
+        <button type="submit" class="modal-submit-btn">로그인</button>
+      </form>
+      <div class="modal-social-links">
+        <p class="easy-login-title">간편 로그인</p>
+        <div class="social-btns">
+          <button type="button" class="social-btn pass-btn">PASS</button>
+          <button type="button" class="social-btn cert-btn">공동인증서</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer Section -->
+  <footer class="footer">
+    <div class="footer-container">
+      <div class="footer-notice-row">
+        <span class="notice-badge">공지사항</span>
+        <a href="#" class="notice-link">[안내] 네이버 메인 개편 및 신규 AI 검색 서비스 안내</a>
+      </div>
+      <div class="footer-links-row">
+        <a href="#">회사소개</a>
+        <span class="bar">|</span>
+        <a href="#">인재채용</a>
+        <span class="bar">|</span>
+        <a href="#">제휴제안</a>
+        <span class="bar">|</span>
+        <a href="#"><strong>이용약관</strong></a>
+        <span class="bar">|</span>
+        <a href="#"><strong>개인정보처리방침</strong></a>
+        <span class="bar">|</span>
+        <a href="#">청소년보호정책</a>
+        <span class="bar">|</span>
+        <a href="#">고객센터</a>
+      </div>
+      <div class="footer-copy-row">
+        <span>© NAVER Corp. All Rights Reserved.</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
