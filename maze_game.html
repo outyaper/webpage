@@ -1,0 +1,1751 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>미로찾기 게임</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #1a1a2e;
+    color: #e0e0ff;
+    font-family: 'Segoe UI', sans-serif;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  #menu-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    gap: 32px;
+    position: relative;
+  }
+  #menu-screen h1 {
+    font-size: 48px;
+    font-weight: 700;
+    color: #a78bfa;
+    letter-spacing: 4px;
+  }
+  .menu-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+  .menu-section label {
+    font-size: 14px;
+    color: #9ca3af;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  .btn-group { display: flex; gap: 12px; }
+  .btn {
+    padding: 10px 24px;
+    border: 1.5px solid #4c1d95;
+    border-radius: 8px;
+    background: transparent;
+    color: #c4b5fd;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 1px;
+  }
+  .btn:hover { background: #2d1b69; border-color: #7c3aed; }
+  .btn.active { background: #4c1d95; border-color: #7c3aed; color: #fff; }
+  .btn-start {
+    padding: 14px 48px;
+    font-size: 18px;
+    background: #4c1d95;
+    color: #fff;
+    border-radius: 10px;
+    cursor: pointer;
+    border: 2px solid #7c3aed;
+    transition: all 0.2s;
+    letter-spacing: 2px;
+    margin-top: 8px;
+  }
+  .btn-start:hover { background: #5b21b6; transform: scale(1.04); }
+
+  #version-tag {
+    position: absolute;
+    left: 20px;
+    bottom: 16px;
+    font-size: 13px;
+    color: #4b5563;
+    letter-spacing: 1px;
+  }
+  #game-screen {
+    display: none;
+    flex-direction: column;
+    height: 100vh;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  #game-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    background: #12122a;
+    border-bottom: 1px solid #2d2d5e;
+    flex-shrink: 0;
+    height: 52px;
+    position: relative;
+  }
+  #header-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    position: sticky;
+    right: 0;
+  }
+  .header-info { display: flex; align-items: center; gap: 16px; font-size: 14px; color: #9ca3af; }
+  .header-info span { color: #c4b5fd; font-weight: 600; }
+  #timer-wrap { display: flex; align-items: baseline; gap: 8px; }
+  #timer-label { font-size: 13px; color: #9ca3af; letter-spacing: 1px; }
+  #timer-display { font-size: 22px; font-weight: 700; color: #a78bfa; min-width: 80px; text-align: center; }
+  #timer-display.urgent { animation: timerBlink 1s steps(1, end) infinite; }
+  @keyframes timerBlink {
+    0%, 49%  { color: #ef4444; }
+    50%, 100% { color: #ffffff; }
+  }
+  .score-wrap { display: flex; align-items: baseline; gap: 8px; margin-left: 16px; padding-left: 16px; border-left: 1px solid #2d2d5e; }
+  .score-label { font-size: 13px; color: #9ca3af; letter-spacing: 1px; }
+  .score-value { font-size: 18px; font-weight: 700; color: #fbbf24; min-width: 48px; }
+  .score-divider { color: #4b5563; font-size: 13px; }
+  #best-score-wrap { display: flex; align-items: baseline; gap: 6px; padding: 4px 10px; border: 1px solid #2d2d5e; border-radius: 8px; background: #0f0f23; }
+  .best-score-value { font-size: 16px; font-weight: 800; color: #f59e0b; min-width: 44px; text-align: right; }
+
+  /* ── 아이템 수집 팝업 이펙트 ─────────────────────────── */
+  .item-popup {
+    position: absolute;
+    pointer-events: none;
+    z-index: 30;
+    font-size: 22px;
+    font-weight: 800;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    animation: itemPop 0.7s ease-out forwards;
+    transform-origin: center bottom;
+    white-space: nowrap;
+  }
+  .item-popup-emoji { font-size: 28px; display: block; }
+  .item-popup-score { font-size: 14px; font-weight: 800; color: #fbbf24; text-shadow: 0 0 6px #f59e0b; }
+  @keyframes itemPop {
+    0%   { opacity: 1; transform: translateY(0)   scale(0.6); }
+    25%  { opacity: 1; transform: translateY(-18px) scale(1.3); }
+    60%  { opacity: 1; transform: translateY(-36px) scale(1.0); }
+    100% { opacity: 0; transform: translateY(-56px) scale(0.8); }
+  }
+  /* 팩맨 점 수집 팝업 — 작고 빠르게 */
+  .dot-popup {
+    position: absolute;
+    pointer-events: none;
+    z-index: 30;
+    font-size: 11px;
+    font-weight: 800;
+    color: #fde047;
+    text-shadow: 0 0 4px rgba(253,224,71,0.7);
+    white-space: nowrap;
+    animation: dotPop 0.45s ease-out forwards;
+    transform-origin: center;
+  }
+  @keyframes dotPop {
+    0%   { opacity: 1; transform: translateY(0)    scale(1.2); }
+    50%  { opacity: 1; transform: translateY(-12px) scale(1.0); }
+    100% { opacity: 0; transform: translateY(-22px) scale(0.8); }
+  }
+  .btn-reset {
+    padding: 6px 16px;
+    border: 1px solid #4c1d95;
+    border-radius: 6px;
+    background: transparent;
+    color: #c4b5fd;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .btn-reset:hover { background: #2d1b69; }
+  #game-area { display: flex; flex: 1; overflow: hidden; }
+  .player-panel {
+    flex: 1 1 0;
+    min-width: 0;
+    width: 50%;
+    max-width: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    padding: 8px;
+    box-sizing: border-box;
+  }
+  .player-panel + .player-panel { border-left: 2px solid #2d2d5e; }
+  .player-label {
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 13px;
+    color: #6b7280;
+    letter-spacing: 2px;
+    white-space: nowrap;
+  }
+  canvas {
+    border: 2px solid #2d2d5e;
+    border-radius: 4px;
+    cursor: crosshair;
+    display: block;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-user-drag: none;
+    touch-action: none;
+  }
+  .success-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(10,10,30,0.85);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    border-radius: 4px;
+    z-index: 10;
+  }
+  .success-overlay.show { display: flex; }
+  .timeup-title { color: #ef4444; }
+
+  .wait-overlay {
+    position: absolute;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 20;
+    pointer-events: none; /* 바깥 여백은 클릭 통과 안되지만 시각적으로만 막음 */
+  }
+  .wait-overlay.show { display: flex; pointer-events: auto; }
+  .wait-box {
+    width: 70%;
+    height: 70%;
+    background: #050510;
+    border: 2px solid #1e1b3a;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    box-shadow: 0 0 40px rgba(0,0,0,0.6);
+  }
+  .wait-emoji { font-size: 44px; opacity: 0.8; }
+  .wait-title { font-size: 24px; font-weight: 700; color: #818cf8; letter-spacing: 2px; }
+  .wait-sub { font-size: 14px; color: #6b7280; }
+  .success-title { font-size: 32px; font-weight: 700; color: #a78bfa; letter-spacing: 3px; }
+  .success-time { font-size: 18px; color: #c4b5fd; }
+  .success-emoji { font-size: 48px; }
+  .single-result-btns {
+    display: none; /* 기본 숨김, 혼자서 모드에서만 표시 */
+    gap: 12px;
+    margin-top: 12px;
+  }
+  .controls-hint {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 11px;
+    color: #4b5563;
+    white-space: nowrap;
+  }
+
+  /* ── 승자 발표 모달 ───────────────────────────────── */
+  #winner-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+  }
+  #winner-modal-overlay.show { display: flex; }
+
+  #winner-modal {
+    background: #16162e;
+    border: 2px solid #4c1d95;
+    border-radius: 16px;
+    padding: 32px 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    max-width: 720px;
+    box-shadow: 0 0 60px rgba(124,58,237,0.35);
+  }
+
+  .winner-emoji { font-size: 56px; }
+
+  #winner-title {
+    font-size: 30px;
+    font-weight: 800;
+    color: #fbbf24;
+    letter-spacing: 2px;
+  }
+
+  .winner-formula {
+    font-size: 13px;
+    color: #9ca3af;
+    background: #0f0f23;
+    border: 1px solid #2d2d5e;
+    border-radius: 8px;
+    padding: 6px 14px;
+    margin-bottom: 6px;
+  }
+
+  .winner-compare {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+
+  .winner-block {
+    width: 220px;
+    background: #0f0f23;
+    border: 1.5px solid #2d2d5e;
+    border-radius: 10px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: all 0.2s;
+  }
+  .winner-block.is-winner {
+    border-color: #fbbf24;
+    box-shadow: 0 0 22px rgba(251,191,36,0.35);
+    background: #1c1808;
+  }
+
+  .winner-player-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: #c4b5fd;
+    text-align: center;
+    margin-bottom: 4px;
+    letter-spacing: 1px;
+  }
+
+  .winner-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: #9ca3af;
+  }
+  .winner-row span:last-child {
+    color: #e0e0ff;
+    font-weight: 600;
+  }
+
+  .winner-row-total {
+    border-top: 1px solid #2d2d5e;
+    margin-top: 4px;
+    padding-top: 8px;
+    font-size: 14px;
+  }
+  .winner-row-total span:last-child {
+    color: #fbbf24;
+    font-size: 18px;
+    font-weight: 800;
+  }
+
+  .winner-vs {
+    font-size: 18px;
+    font-weight: 800;
+    color: #4b5563;
+  }
+  .penalty-row { border-top: 1px dashed #3b1f5e; padding-top: 4px; margin-top: 2px; }
+  .penalty-value { color: #f87171 !important; font-weight: 700; }
+
+  .winner-buttons {
+    display: flex;
+    gap: 12px;
+    margin-top: 8px;
+  }
+  /* ── 턴 시작 카운트다운 팝업 ──────────────────────────── */
+  #turn-start-popup {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+    pointer-events: none;
+  }
+  #turn-start-popup.show { display: flex; }
+  .turn-start-box {
+    background: rgba(10, 8, 30, 0.92);
+    border: 2px solid #4c1d95;
+    border-radius: 20px;
+    padding: 32px 56px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 0 48px rgba(124, 58, 237, 0.5);
+    animation: popIn 0.25s ease-out;
+  }
+  @keyframes popIn {
+    from { transform: scale(0.7); opacity: 0; }
+    to   { transform: scale(1);   opacity: 1; }
+  }
+  .turn-start-player {
+    font-size: 18px;
+    color: #a78bfa;
+    letter-spacing: 3px;
+    font-weight: 600;
+  }
+  .turn-start-msg {
+    font-size: 36px;
+    font-weight: 800;
+    color: #fbbf24;
+    letter-spacing: 2px;
+    text-shadow: 0 0 16px rgba(251,191,36,0.6);
+  }
+  .turn-start-countdown {
+    font-size: 22px;
+    font-weight: 700;
+    color: #c4b5fd;
+    letter-spacing: 1px;
+    animation: fadeCountdown 0.5s ease-in-out;
+  }
+  @keyframes fadeCountdown {
+    from { opacity: 0; transform: scale(1.3); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+</style>
+</head>
+<body>
+
+<div id="menu-screen">
+  <h1>🌀 미로찾기</h1>
+  <div class="menu-section">
+    <label>난이도</label>
+    <div class="btn-group">
+      <button class="btn active" data-diff="easy" onclick="selectDiff(this)">쉬움</button>
+      <button class="btn" data-diff="normal" onclick="selectDiff(this)">보통</button>
+      <button class="btn" data-diff="hard" onclick="selectDiff(this)">어려움</button>
+    </div>
+  </div>
+  <div class="menu-section">
+    <label>플레이 모드</label>
+    <div class="btn-group">
+      <button class="btn active" data-mode="single" onclick="selectMode(this)">혼자서</button>
+      <button class="btn" data-mode="duo" onclick="selectMode(this)">둘이서</button>
+    </div>
+  </div>
+  <button class="btn-start" onclick="startGame()">게임 시작</button>
+  <div id="version-tag">v2.4</div>
+</div>
+
+<div id="game-screen">
+  <div id="game-header">
+    <div class="header-info">
+      난이도: <span id="info-diff">-</span> &nbsp;|&nbsp; 모드: <span id="info-mode">-</span>
+      <span id="turn-indicator" style="display:none; margin-left:14px; color:#fbbf24; font-weight:600;"></span>
+    </div>
+    <div id="timer-wrap">
+      <span id="timer-label">남은시간</span>
+      <span id="timer-display">00:00</span>
+      <span id="score-wrap-single" class="score-wrap">
+        <span class="score-label">현재 점수</span>
+        <span id="score-single" class="score-value">0점</span>
+      </span>
+      <span id="score-wrap-duo" class="score-wrap" style="display:none">
+        <span class="score-label">P1</span>
+        <span id="score-p1" class="score-value">0점</span>
+        <span class="score-divider">|</span>
+        <span class="score-label">P2</span>
+        <span id="score-p2" class="score-value">0점</span>
+      </span>
+    </div>
+    <div id="header-right">
+      <div id="best-score-wrap">
+        <span class="score-label">최고 점수</span>
+        <span id="best-score-display" class="best-score-value">-</span>
+      </div>
+      <button class="btn-reset" onclick="goMenu()">← 메뉴</button>
+    </div>
+  </div>
+  <div id="game-area">
+    <div class="player-panel" id="panel1">
+      <div class="player-label" id="label1">PLAYER 1</div>
+      <canvas id="canvas1"></canvas>
+      <div class="success-overlay" id="overlay1">
+        <div class="success-emoji">🎉</div>
+        <div class="success-title">미션 성공!</div>
+        <div class="success-time" id="time1"></div>
+        <div class="single-result-btns" id="single-result-btns1">
+          <button class="btn-start" onclick="restartSingle()">다시 하기</button>
+          <button class="btn-reset" onclick="goMenu()">메뉴로</button>
+        </div>
+      </div>
+      <div class="success-overlay timeup-overlay" id="timeup1">
+        <div class="success-emoji">⏰</div>
+        <div class="success-title timeup-title">시간 초과!</div>
+        <div class="success-time">제한 시간 내에 도착하지 못했어요</div>
+        <div class="success-time" id="timeup-score1"></div>
+        <div class="single-result-btns" id="single-timeup-btns1">
+          <button class="btn-start" onclick="restartSingle()">다시 하기</button>
+          <button class="btn-reset" onclick="goMenu()">메뉴로</button>
+        </div>
+      </div>
+      <div class="wait-overlay" id="wait1">
+        <div class="wait-box">
+          <div class="wait-emoji">⏳</div>
+          <div class="wait-title">대기 중</div>
+          <div class="wait-sub">상대 플레이어가 진행 중입니다</div>
+        </div>
+      </div>
+      <div class="controls-hint" id="hint1">S에서 마우스를 누르고 드래그해서 E까지 연결하세요</div>
+    </div>
+    <div class="player-panel" id="panel2" style="display:none">
+      <div class="player-label">PLAYER 2</div>
+      <canvas id="canvas2"></canvas>
+      <div class="success-overlay" id="overlay2">
+        <div class="success-emoji">🎉</div>
+        <div class="success-title">미션 성공!</div>
+        <div class="success-time" id="time2"></div>
+      </div>
+      <div class="wait-overlay" id="wait2">
+        <div class="wait-box">
+          <div class="wait-emoji">⏳</div>
+          <div class="wait-title">대기 중</div>
+          <div class="wait-sub">상대 플레이어가 진행 중입니다</div>
+        </div>
+      </div>
+      <div class="success-overlay timeup-overlay" id="timeup2">
+        <div class="success-emoji">⏰</div>
+        <div class="success-title timeup-title">시간 초과!</div>
+        <div class="success-time">제한 시간 내에 도착하지 못했어요</div>
+        <div class="success-time" id="timeup-score2"></div>
+      </div>
+      <div class="controls-hint">S에서 마우스를 누르고 드래그해서 E까지 연결하세요</div>
+    </div>
+  </div>
+</div>
+
+<div id="turn-start-popup">
+  <div class="turn-start-box">
+    <div class="turn-start-player" id="turn-start-player">PLAYER 1 차례</div>
+    <div class="turn-start-msg">자! 시작합니다</div>
+    <div class="turn-start-countdown" id="turn-start-countdown">3</div>
+  </div>
+</div>
+
+<div id="winner-modal-overlay">
+  <div id="winner-modal">
+    <div class="winner-emoji">🏆</div>
+    <div id="winner-title">PLAYER 1 승리!</div>
+
+    <div class="winner-formula">계산법: 아이템 점수 + 남은시간(초) - 패널티(시간초과 시 -30%) = 최종 점수</div>
+
+    <div class="winner-compare">
+      <div class="winner-block" id="winner-p1">
+        <div class="winner-player-name">PLAYER 1</div>
+        <div class="winner-row"><span>결과</span><span id="wp1-status">-</span></div>
+        <div class="winner-row"><span>아이템 점수</span><span id="wp1-score">0점</span></div>
+        <div class="winner-row"><span>남은 시간</span><span id="wp1-remain">0초</span></div>
+        <div class="winner-row penalty-row" id="wp1-penalty-row" style="display:none">
+          <span>패널티 (-30%)</span><span id="wp1-penalty" class="penalty-value">-0점</span>
+        </div>
+        <div class="winner-row winner-row-total"><span>최종 점수</span><span id="wp1-total">0점</span></div>
+      </div>
+      <div class="winner-vs">VS</div>
+      <div class="winner-block" id="winner-p2">
+        <div class="winner-player-name">PLAYER 2</div>
+        <div class="winner-row"><span>결과</span><span id="wp2-status">-</span></div>
+        <div class="winner-row"><span>아이템 점수</span><span id="wp2-score">0점</span></div>
+        <div class="winner-row"><span>남은 시간</span><span id="wp2-remain">0초</span></div>
+        <div class="winner-row penalty-row" id="wp2-penalty-row" style="display:none">
+          <span>패널티 (-30%)</span><span id="wp2-penalty" class="penalty-value">-0점</span>
+        </div>
+        <div class="winner-row winner-row-total"><span>최종 점수</span><span id="wp2-total">0점</span></div>
+      </div>
+    </div>
+
+    <div class="winner-buttons">
+      <button class="btn-start" onclick="restartSameSettings()">다시 시작</button>
+      <button class="btn-reset" onclick="closeWinnerModalToMenu()">메뉴로</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── 사운드 시스템 ────────────────────────────────────────
+// Web Audio API로 효과음을 직접 합성(외부 파일 불필요, 항상 동작).
+// bgm.mp3는 같은 경로에 있으면 재생, 없으면 조용히 무시(에러 없음).
+let audioCtx = null;
+function getAudioCtx() {
+  if (!audioCtx) {
+    try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+    catch (e) { audioCtx = null; }
+  }
+  return audioCtx;
+}
+
+// 짧은 "먹는" 효과음을 톤 시퀀스로 합성
+function playEatSound(type) {
+  const ctx = getAudioCtx();
+  if (!ctx) return;
+  if (ctx.state === 'suspended') ctx.resume();
+
+  // 아이템별로 다른 음색/음높이 패턴
+  const patterns = {
+    candy: { freqs: [880, 1320],          dur: 0.08, wave: 'sine'     },
+    choco: { freqs: [520, 660, 780],      dur: 0.07, wave: 'triangle' },
+    bread: { freqs: [330, 440, 550, 660], dur: 0.06, wave: 'square'   },
+    clock: { freqs: [1046, 1318, 1568],   dur: 0.09, wave: 'sine'     }  // 시계: 맑고 경쾌한 상승음
+  };
+  const p = patterns[type] || patterns.candy;
+  const now = ctx.currentTime;
+
+  p.freqs.forEach((freq, i) => {
+    const osc  = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = p.wave;
+    osc.frequency.setValueAtTime(freq, now + i * p.dur);
+    gain.gain.setValueAtTime(0, now + i * p.dur);
+    gain.gain.linearRampToValueAtTime(0.18, now + i * p.dur + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + i * p.dur + p.dur);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(now + i * p.dur);
+    osc.stop(now + i * p.dur + p.dur + 0.02);
+  });
+}
+
+// 승자 발표 축하 팡파레 사운드 (상승 아르페지오)
+function playWinSound() {
+  const ctx = getAudioCtx();
+  if (!ctx) return;
+  if (ctx.state === 'suspended') ctx.resume();
+
+  const notes = [523.25, 659.25, 783.99, 1046.5]; // C5 E5 G5 C6
+  const now = ctx.currentTime;
+  const noteDur = 0.16;
+
+  notes.forEach((freq, i) => {
+    const osc  = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(freq, now + i * noteDur);
+    gain.gain.setValueAtTime(0, now + i * noteDur);
+    gain.gain.linearRampToValueAtTime(0.22, now + i * noteDur + 0.015);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + i * noteDur + noteDur * 1.8);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(now + i * noteDur);
+    osc.stop(now + i * noteDur + noteDur * 1.8 + 0.02);
+  });
+
+  // 마지막에 화음으로 마무리
+  const chordStart = now + notes.length * noteDur;
+  [783.99, 1046.5, 1318.5].forEach(freq => {
+    const osc  = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(freq, chordStart);
+    gain.gain.setValueAtTime(0, chordStart);
+    gain.gain.linearRampToValueAtTime(0.16, chordStart + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, chordStart + 0.6);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(chordStart);
+    osc.stop(chordStart + 0.65);
+  });
+}
+
+// ── 신기록 전용 축하음 (더 화려한 팡파레) ──────────────────
+function playClearSound() {
+  const ctx = getAudioCtx();
+  if (!ctx) return;
+  if (ctx.state === 'suspended') ctx.resume();
+
+  // 빠른 상승 아르페지오 + 트릴 + 마지막 긴 화음
+  const seq = [
+    { f: 523.25, t: 0.00, d: 0.12 },
+    { f: 659.25, t: 0.10, d: 0.12 },
+    { f: 783.99, t: 0.20, d: 0.12 },
+    { f: 1046.5, t: 0.30, d: 0.20 },
+    { f: 1318.5, t: 0.48, d: 0.20 },
+    { f: 1567.9, t: 0.66, d: 0.55 },
+  ];
+  const now = ctx.currentTime;
+  seq.forEach(({ f, t, d }) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(f, now + t);
+    gain.gain.setValueAtTime(0, now + t);
+    gain.gain.linearRampToValueAtTime(0.22, now + t + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + t + d);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(now + t); osc.stop(now + t + d + 0.05);
+  });
+
+  // 화음 마무리
+  const cs = now + 1.1;
+  [783.99, 1046.5, 1318.5, 1567.9].forEach(f => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(f, cs);
+    gain.gain.setValueAtTime(0, cs);
+    gain.gain.linearRampToValueAtTime(0.15, cs + 0.03);
+    gain.gain.exponentialRampToValueAtTime(0.0001, cs + 1.0);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(cs); osc.stop(cs + 1.1);
+  });
+}
+
+// ── 폭죽 이펙트 ────────────────────────────────────────────
+function launchConfetti(container) {
+  const colors = ['#f59e0b','#a78bfa','#34d399','#f87171','#60a5fa','#fbbf24','#c084fc'];
+  const total  = 80;
+  const rect   = container.getBoundingClientRect();
+
+  for (let i = 0; i < total; i++) {
+    const el = document.createElement('div');
+    el.style.cssText = `
+      position: fixed;
+      width: ${Math.random() * 8 + 6}px;
+      height: ${Math.random() * 8 + 6}px;
+      background: ${colors[Math.floor(Math.random() * colors.length)]};
+      border-radius: ${Math.random() > 0.5 ? '50%' : '2px'};
+      left: ${rect.left + rect.width * (0.2 + Math.random() * 0.6)}px;
+      top: ${rect.top + rect.height * 0.4}px;
+      pointer-events: none;
+      z-index: 999;
+      opacity: 1;
+    `;
+    document.body.appendChild(el);
+
+    const angle  = (Math.random() * 260 - 130) * Math.PI / 180;
+    const speed  = Math.random() * 180 + 80;
+    const vx     = Math.cos(angle) * speed;
+    const vy     = Math.sin(angle) * speed - 120;
+    const spin   = (Math.random() - 0.5) * 720;
+    let   px = 0, py = 0, rot = 0, opa = 1;
+    let   t  = 0;
+    const gravity = 280;
+
+    function step(ts) {
+      t    += 0.016;
+      px   += vx * 0.016;
+      py   += (vy + gravity * t) * 0.016;
+      rot  += spin * 0.016;
+      opa   = Math.max(0, 1 - t * 0.7);
+      el.style.transform = `translate(${px}px,${py}px) rotate(${rot}deg)`;
+      el.style.opacity   = opa;
+      if (opa > 0) requestAnimationFrame(step);
+      else el.remove();
+    }
+
+    // 각 입자마다 약간의 지연
+    setTimeout(() => requestAnimationFrame(step), Math.random() * 300);
+  }
+}
+let bgmAudio = null;
+let bgmReady = false;
+function initBgm() {
+  try {
+    bgmAudio = new Audio('bgm.mp3');
+    bgmAudio.loop = true;
+    bgmAudio.volume = 0.35;
+    // 파일이 없거나 로드 실패해도 에러를 던지지 않고 조용히 무시
+    bgmAudio.addEventListener('canplaythrough', () => { bgmReady = true; });
+    bgmAudio.addEventListener('error', () => { bgmReady = false; bgmAudio = null; });
+    bgmAudio.load();
+  } catch (e) {
+    bgmAudio = null;
+    bgmReady = false;
+  }
+}
+function playBgm() {
+  if (!bgmAudio) return;
+  try { bgmAudio.play().catch(() => { /* 자동재생 차단 등은 무시 */ }); }
+  catch (e) { /* 무시 */ }
+}
+function stopBgm() {
+  if (!bgmAudio) return;
+  try { bgmAudio.pause(); bgmAudio.currentTime = 0; }
+  catch (e) { /* 무시 */ }
+}
+initBgm();
+
+// ── 전역 상태 ──────────────────────────────────────────────
+let difficulty = 'easy';
+let gameMode   = 'single';
+let timerInterval = null;
+let startTime  = null;
+let gameRunning = false;
+
+// 둘이서(턴제) 모드 상태
+let currentTurn = 1;          // 현재 플레이 중인 플레이어 번호 (1 또는 2)
+let turnOrder   = [1, 2];     // 랜덤으로 정해진 진행 순서
+
+// 각 캔버스의 게임 상태를 보관 (key: canvasId)
+const games = {};
+
+const DIFF = {
+  easy:   { cols: 13, rows: 9,  timeLimit: 30, wallColor: '#22c55e' },  // 쉬움: 초록
+  normal: { cols: 19, rows: 13, timeLimit: 50, wallColor: '#3b82f6' },  // 보통: 파랑
+  hard:   { cols: 27, rows: 19, timeLimit: 90, wallColor: '#ef4444' }   // 어려움: 빨강
+};
+
+// ── 최고 점수 (localStorage, 난이도+모드 조합별) ──────────
+function bestScoreKey() {
+  return 'maze_best_' + difficulty + '_' + gameMode;
+}
+function loadBestScore() {
+  try { return parseInt(localStorage.getItem(bestScoreKey())) || 0; }
+  catch (e) { return 0; }
+}
+function saveBestScore(score) {
+  try {
+    const prev = loadBestScore();
+    if (score > prev) {
+      localStorage.setItem(bestScoreKey(), score);
+      return true; // 신기록
+    }
+  } catch (e) {}
+  return false;
+}
+function updateBestScoreDisplay() {
+  const best = loadBestScore();
+  document.getElementById('best-score-display').textContent = best > 0 ? best + '점' : '-';
+}
+
+// ── 메뉴 선택 ──────────────────────────────────────────────
+function selectDiff(el) {
+  document.querySelectorAll('[data-diff]').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  difficulty = el.dataset.diff;
+}
+function selectMode(el) {
+  document.querySelectorAll('[data-mode]').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  gameMode = el.dataset.mode;
+}
+
+// ── 메뉴로 돌아가기 ────────────────────────────────────────
+function goMenu() {
+  clearInterval(timerInterval);
+  gameRunning = false;
+  // games 초기화 (이벤트 리스너 정리는 캔버스를 통해 자동 GC)
+  for (const k in games) delete games[k];
+  document.getElementById('menu-screen').style.display = 'flex';
+  document.getElementById('game-screen').style.display  = 'none';
+  stopBgm();
+}
+
+// ── 타이머 (카운트다운) ──────────────────────────────────
+function formatTime(ms) {
+  const s = Math.max(0, Math.floor(ms / 1000));
+  return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+}
+function updateTimer() {
+  if (!gameRunning) return;
+  const limitMs = DIFF[difficulty].timeLimit * 1000;
+  const remaining = limitMs - (Date.now() - startTime);
+
+  const timerEl = document.getElementById('timer-display');
+  timerEl.textContent = formatTime(remaining);
+  timerEl.classList.toggle('urgent', remaining <= 10000 && remaining > 0);
+
+  if (remaining <= 0) {
+    timerEl.textContent = '00:00';
+    handleTimeUp();
+  }
+}
+
+// ── 시간 초과 처리 ────────────────────────────────────────
+function handleTimeUp() {
+  if (!gameRunning) return;
+  gameRunning = false;
+  clearInterval(timerInterval);
+
+  if (gameMode === 'duo') {
+    const g = games['canvas' + currentTurn];
+    if (g && !g.solved) {
+      g.drawing = false;
+      g.timeUp  = true;
+      g.remainingSec = 0;
+      // 시간 초과 패널티: 점수의 30% 차감 (최소 0점)
+      const rawScore = g.score;
+      const penalty  = Math.floor(rawScore * 0.3);
+      g.penalty = penalty;
+      g.score   = Math.max(0, rawScore - penalty);
+      updateScoreDisplay(g);
+      document.getElementById('timeup' + currentTurn).classList.add('show');
+      const penaltyMsg = penalty > 0
+        ? '획득 점수: ' + g.score + '점 (패널티 -' + penalty + '점 적용)'
+        : '획득 점수: 0점 (패널티 적용)';
+      document.getElementById('timeup-score' + currentTurn).textContent = penaltyMsg;
+    }
+    setTimeout(advanceTurn, 1500);
+    return;
+  }
+
+  // 혼자서 모드
+  for (const id in games) {
+    const g = games[id];
+    g.drawing = false;
+    if (!g.solved) {
+      g.timeUp = true;
+      const timeupId = g.overlayId.replace('overlay', 'timeup');
+      document.getElementById(timeupId).classList.add('show');
+      const scoreEl = document.getElementById('timeup-score' + timeupId.replace('timeup', ''));
+      if (scoreEl) scoreEl.textContent = '획득 점수: ' + g.score + '점';
+    }
+  }
+}
+
+// ── 둘이서(턴제) 모드: 다음 플레이어로 턴 전환 ────────────
+function advanceTurn() {
+  const idx = turnOrder.indexOf(currentTurn);
+  if (idx === turnOrder.length - 1) {
+    // 두 플레이어 모두 완료 → 승자 판정
+    setTimeout(showWinnerResult, 400);
+    return;
+  }
+  currentTurn = turnOrder[idx + 1];
+  beginTurn();
+}
+
+// ── 최종 점수 계산: 점수 + 남은시간(초) ───────────────────
+function finalScoreOf(g) {
+  const remaining = g.remainingSec || 0;
+  return g.score + remaining;
+}
+
+// ── 승자 판정 및 결과 팝업 표시 ────────────────────────────
+function showWinnerResult() {
+  const g1 = games['canvas1'];
+  const g2 = games['canvas2'];
+  if (!g1 || !g2) return;
+
+  const total1 = finalScoreOf(g1);
+  const total2 = finalScoreOf(g2);
+
+  let winnerText, winnerNum;
+  if (total1 > total2)      { winnerNum = 1; winnerText = 'PLAYER 1 승리!'; }
+  else if (total2 > total1) { winnerNum = 2; winnerText = 'PLAYER 2 승리!'; }
+  else                      { winnerNum = 0; winnerText = '무승부!'; }
+
+  // 둘이서 모드: 승자(또는 무승부 시 더 높은 쪽) 최종점수를 최고점수로 저장
+  const bestTotal = Math.max(total1, total2);
+  const isNewRecord = saveBestScore(bestTotal);
+  if (isNewRecord) updateBestScoreDisplay();
+
+  const recordTag = isNewRecord ? '  🏆 신기록!' : '';
+  document.getElementById('winner-title').textContent = winnerText + recordTag;
+
+  fillPlayerResultBlock(1, g1, total1, winnerNum);
+  fillPlayerResultBlock(2, g2, total2, winnerNum);
+
+  document.getElementById('winner-modal-overlay').classList.add('show');
+  playWinSound();
+}
+
+function fillPlayerResultBlock(num, g, total, winnerNum) {
+  const status = g.solved ? '🎉 성공' : (g.timeUp ? '⏰ 시간 초과' : '-');
+  const block  = document.getElementById('winner-p' + num);
+  block.classList.toggle('is-winner', num === winnerNum);
+
+  document.getElementById('wp' + num + '-status').textContent = status;
+  document.getElementById('wp' + num + '-remain').textContent = (g.remainingSec || 0) + '초';
+  document.getElementById('wp' + num + '-total').textContent  = total + '점';
+
+  // 시간 초과 패널티 처리
+  const penaltyRow = document.getElementById('wp' + num + '-penalty-row');
+  const penaltyEl  = document.getElementById('wp' + num + '-penalty');
+  if (g.timeUp) {
+    const penalty = g.penalty || 0;
+    // 아이템 점수 = 패널티 차감 전 점수 역산 (g.score는 이미 차감됨)
+    const rawScore = g.score + penalty;
+    document.getElementById('wp' + num + '-score').textContent = rawScore + '점';
+    penaltyRow.style.display = 'flex';
+    penaltyEl.textContent = '-' + penalty + '점';
+  } else {
+    document.getElementById('wp' + num + '-score').textContent = g.score + '점';
+    penaltyRow.style.display = 'none';
+  }
+}
+
+// ── 승자 모달: 메뉴로 돌아가기 ─────────────────────────────
+function closeWinnerModalToMenu() {
+  document.getElementById('winner-modal-overlay').classList.remove('show');
+  goMenu();
+}
+
+// ── 혼자서 모드 다시 하기 ──────────────────────────────────
+function restartSingle() {
+  startGame();
+}
+
+function restartSameSettings() {
+  document.getElementById('winner-modal-overlay').classList.remove('show');
+  startGame();
+}
+
+// ── 둘이서(턴제) 모드: 현재 턴 플레이어의 타이머/화면 시작 ──
+function beginTurn() {
+  // 가림막: 현재 턴 아닌 쪽만 가리되 게임은 아직 시작 안 함
+  document.getElementById('wait1').classList.toggle('show', currentTurn !== 1);
+  document.getElementById('wait2').classList.toggle('show', currentTurn !== 2);
+  document.getElementById('timer-display').classList.remove('urgent');
+  document.getElementById('turn-indicator').textContent = 'PLAYER ' + currentTurn + ' 차례';
+
+  // 카운트다운 팝업 표시
+  document.getElementById('turn-start-player').textContent = 'PLAYER ' + currentTurn + ' 차례';
+  const popup    = document.getElementById('turn-start-popup');
+  const countEl  = document.getElementById('turn-start-countdown');
+
+  gameRunning = false; // 카운트다운 중에는 타이머 정지
+  clearInterval(timerInterval);
+
+  let count = 3;
+  countEl.textContent = count;
+  popup.classList.add('show');
+
+  const tick = setInterval(() => {
+    count--;
+    if (count > 0) {
+      // 숫자 갱신 시 애니메이션 재트리거
+      countEl.style.animation = 'none';
+      countEl.offsetHeight; // reflow
+      countEl.style.animation = '';
+      countEl.textContent = count;
+    } else {
+      clearInterval(tick);
+      popup.classList.remove('show');
+      // 카운트다운 종료 → 게임 실제 시작
+      startTime   = Date.now();
+      gameRunning = true;
+      updateTimer();
+      timerInterval = setInterval(updateTimer, 500);
+    }
+  }, 800);
+}
+
+// ── 게임 시작 ──────────────────────────────────────────────
+function startGame() {
+  document.getElementById('menu-screen').style.display = 'none';
+  document.getElementById('game-screen').style.display = 'flex';
+
+  // 사용자 클릭(게임 시작 버튼) 직후이므로 오디오 자동재생 정책을 통과할 수 있음
+  getAudioCtx();
+  playBgm();
+
+  const diffNames = { easy:'쉬움', normal:'보통', hard:'어려움' };
+  const modeNames = { single:'혼자서', duo:'둘이서' };
+  document.getElementById('info-diff').textContent = diffNames[difficulty];
+  document.getElementById('info-mode').textContent = modeNames[gameMode];
+  updateBestScoreDisplay();
+
+  const panel2 = document.getElementById('panel2');
+  const turnIndicator = document.getElementById('turn-indicator');
+
+  document.getElementById('overlay1').classList.remove('show');
+  document.getElementById('overlay2').classList.remove('show');
+  document.getElementById('timeup1').classList.remove('show');
+  document.getElementById('timeup2').classList.remove('show');
+  document.getElementById('wait1').classList.remove('show');
+  document.getElementById('wait2').classList.remove('show');
+  document.getElementById('timer-display').classList.remove('urgent');
+  document.getElementById('winner-modal-overlay').classList.remove('show');
+  document.getElementById('turn-start-popup').classList.remove('show');
+
+  // 점수 표시 초기화 및 모드별 표시 영역 토글
+  const scoreSingle = document.getElementById('score-wrap-single');
+  const scoreDuo     = document.getElementById('score-wrap-duo');
+
+  const panel1 = document.getElementById('panel1');
+
+  if (gameMode === 'duo') {
+    panel1.style.maxWidth = '50%';
+    panel2.style.display  = 'flex';
+    panel2.style.maxWidth = '50%';
+    document.getElementById('hint1').textContent = 'S에서 드래그해서 E까지 연결하세요';
+
+    scoreSingle.style.display = 'none';
+    scoreDuo.style.display    = 'flex';
+    document.getElementById('score-p1').textContent = '0점';
+    document.getElementById('score-p2').textContent = '0점';
+
+    // 선공 랜덤 결정
+    turnOrder   = Math.random() < 0.5 ? [1, 2] : [2, 1];
+    currentTurn = turnOrder[0];
+    turnIndicator.style.display = 'inline';
+
+    // 둘이서 모드: 결과 버튼 숨김
+    document.getElementById('single-result-btns1').style.display  = 'none';
+    document.getElementById('single-timeup-btns1').style.display  = 'none';
+  } else {
+    panel1.style.maxWidth = '100%';
+    panel2.style.display  = 'none';
+    document.getElementById('hint1').textContent = 'S에서 마우스를 누르고 드래그해서 E까지 연결하세요';
+
+    scoreSingle.style.display = 'flex';
+    scoreDuo.style.display    = 'none';
+    document.getElementById('score-single').textContent = '0점';
+    turnIndicator.style.display = 'none';
+
+    // 혼자서 모드: 결과 버튼 표시
+    document.getElementById('single-result-btns1').style.display  = 'flex';
+    document.getElementById('single-timeup-btns1').style.display  = 'flex';
+  }
+
+  // 레이아웃 확정 후 캔버스 초기화
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      const score1Id = gameMode === 'duo' ? 'score-p1' : 'score-single';
+      if (gameMode === 'duo') {
+        const { cols, rows } = DIFF[difficulty];
+        const sharedItems = placeItems(null, cols, rows);
+        const sharedDots  = placeDots(sharedItems, cols, rows);
+        initMaze('canvas1', 'overlay1', 'time1', score1Id,   sharedItems, sharedDots);
+        initMaze('canvas2', 'overlay2', 'time2', 'score-p2', sharedItems, sharedDots);
+      } else {
+        initMaze('canvas1', 'overlay1', 'time1', score1Id);
+      }
+
+      if (gameMode === 'duo') {
+        beginTurn();
+      } else {
+        clearInterval(timerInterval);
+        startTime   = Date.now();
+        gameRunning = true;
+        updateTimer();
+        timerInterval = setInterval(updateTimer, 500);
+      }
+    });
+  });
+}
+
+// ── 미로 초기화 ────────────────────────────────────────────
+function initMaze(canvasId, overlayId, timeId, scoreId, sharedItems, sharedDots) {
+  const canvas = document.getElementById(canvasId);
+  const panel  = canvas.parentElement;
+  const panelW = panel.clientWidth  - 24;
+  const panelH = panel.clientHeight - 60;
+
+  const { cols, rows } = DIFF[difficulty];
+  const cs     = Math.floor(Math.min(panelW / cols, panelH / rows));
+  canvas.width  = cols * cs;
+  canvas.height = rows * cs;
+
+  const maze  = generateMaze(cols, rows);
+  const items = sharedItems
+    ? sharedItems.map(it => ({ ...it, collected: false }))
+    : placeItems(maze, cols, rows);
+
+  // 아이템이 없는 모든 셀에 팩맨 점 배치
+  const dots = sharedDots
+    ? sharedDots.map(d => ({ ...d, collected: false }))
+    : placeDots(items, cols, rows);
+
+  const g = { canvas, maze, cols, rows, cs, overlayId, timeId, scoreId,
+               drawing: false, path: [], solved: false, items, dots, score: 0, mazeCache: null };
+  games[canvasId] = g;
+
+  drawMaze(g);
+  attachCanvasEvents(g);
+}
+
+// ── 팩맨 점 배치: 아이템·출발·도착 제외한 모든 셀 ──────────
+function placeDots(items, cols, rows) {
+  const excluded = new Set(['0,0', `${cols-1},${rows-1}`]);
+  if (items) items.forEach(it => excluded.add(`${it.c},${it.r}`));
+  const dots = [];
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      if (!excluded.has(`${c},${r}`)) {
+        dots.push({ c, r, collected: false });
+      }
+    }
+  }
+  return dots;
+}
+
+// ── 아이템 배치: 사탕(10점), 초코(15점), 빵(20점) ─────────
+const ITEM_TYPES = {
+  candy:  { emoji: '🍬', score: 10 },
+  choco:  { emoji: '🍫', score: 15 },
+  bread:  { emoji: '🍞', score: 20 },
+  clock:  { emoji: '⏰', score: 0, timeBonus: 5 }  // 시간 +5초
+};
+
+function placeItems(maze, cols, rows) {
+  const totalCells = cols * rows;
+  // 일반 아이템(사탕/초코/빵) 개수 — 난이도에 비례
+  const foodCount  = Math.max(4, Math.floor(totalCells / 18));
+  // 시계는 미로당 1~2개 고정
+  const clockCount = Math.random() < 0.5 ? 1 : 2;
+
+  const occupied = new Set(['0,0', `${cols-1},${rows-1}`]);
+  const items = [];
+  const foodTypes = ['candy', 'choco', 'bread'];
+
+  function placeRandom(type) {
+    let attempts = 0;
+    while (attempts < 200) {
+      attempts++;
+      const c = Math.floor(Math.random() * cols);
+      const r = Math.floor(Math.random() * rows);
+      const key = `${c},${r}`;
+      if (occupied.has(key)) continue;
+      occupied.add(key);
+      items.push({ c, r, type, collected: false });
+      return true;
+    }
+    return false;
+  }
+
+  // 일반 아이템: 세 종류 균등하게 순환 배치
+  for (let i = 0; i < foodCount; i++) {
+    placeRandom(foodTypes[i % foodTypes.length]);
+  }
+
+  // 시계 1~2개
+  for (let i = 0; i < clockCount; i++) {
+    placeRandom('clock');
+  }
+
+  return items;
+}
+
+// ── 미로 생성 (재귀 백트래커) ──────────────────────────────
+function generateMaze(cols, rows) {
+  const grid = Array.from({ length: rows }, (_, r) =>
+    Array.from({ length: cols }, (_, c) => ({
+      r, c,
+      walls: { top:true, right:true, bottom:true, left:true },
+      visited: false
+    }))
+  );
+  const dirs = [
+    { dr:-1, dc:0, wall:'top',    opp:'bottom' },
+    { dr:0,  dc:1, wall:'right',  opp:'left'   },
+    { dr:1,  dc:0, wall:'bottom', opp:'top'    },
+    { dr:0, dc:-1, wall:'left',   opp:'right'  },
+  ];
+  const stack = [grid[0][0]];
+  grid[0][0].visited = true;
+  while (stack.length) {
+    const cur = stack[stack.length - 1];
+    const nbrs = dirs.map(d => {
+      const nr = cur.r + d.dr, nc = cur.c + d.dc;
+      if (nr>=0 && nr<rows && nc>=0 && nc<cols && !grid[nr][nc].visited)
+        return { cell: grid[nr][nc], d };
+      return null;
+    }).filter(Boolean);
+    if (!nbrs.length) { stack.pop(); continue; }
+    const { cell, d } = nbrs[Math.floor(Math.random() * nbrs.length)];
+    cur.walls[d.wall] = false;
+    cell.walls[d.opp] = false;
+    cell.visited = true;
+    stack.push(cell);
+  }
+
+  // ── 도착점(우하단)을 막다른 길로 보장 ──────────────────
+  // 도착점에 열린 통로가 2개 이상이면 1개만 남기고 나머지는 벽으로 막음
+  const goal = grid[rows-1][cols-1];
+  const openDirs = dirs.filter(d => {
+    const nr = rows-1+d.dr, nc = cols-1+d.dc;
+    return nr>=0 && nr<rows && nc>=0 && nc<cols && !goal.walls[d.wall];
+  });
+
+  if (openDirs.length >= 2) {
+    // BFS로 출발(0,0)에서 도착점까지 거리를 계산하고
+    // 도착점으로 오는 경로 방향(마지막 한 칸)만 남기고 나머지 닫기
+    const dist = Array.from({ length: rows }, () => new Array(cols).fill(-1));
+    const prev = Array.from({ length: rows }, () => new Array(cols).fill(null));
+    dist[0][0] = 0;
+    const queue = [{ r:0, c:0 }];
+    while (queue.length) {
+      const cur = queue.shift();
+      if (cur.r === rows-1 && cur.c === cols-1) break;
+      for (const d of dirs) {
+        const nr = cur.r+d.dr, nc = cur.c+d.dc;
+        if (nr<0||nr>=rows||nc<0||nc>=cols) continue;
+        if (dist[nr][nc] !== -1) continue;
+        if (grid[cur.r][cur.c].walls[d.wall]) continue;
+        dist[nr][nc] = dist[cur.r][cur.c]+1;
+        prev[nr][nc] = { r:cur.r, c:cur.c };
+        queue.push({ r:nr, c:nc });
+      }
+    }
+    // 도착점 직전 셀 찾기 → 해당 방향만 열어두고 나머지 닫기
+    const beforeGoal = prev[rows-1][cols-1];
+    if (beforeGoal) {
+      for (const d of openDirs) {
+        const nr = rows-1+d.dr, nc = cols-1+d.dc;
+        const isPath = (beforeGoal.r === nr && beforeGoal.c === nc);
+        if (!isPath) {
+          // 이 방향 벽 닫기
+          goal.walls[d.wall] = true;
+          grid[nr][nc].walls[d.opp] = true;
+        }
+      }
+    }
+  }
+
+  return grid;
+}
+
+// ── 미로 그리기 ────────────────────────────────────────────
+function drawMaze(g) {
+  const { canvas, maze, cols, rows, cs } = g;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#0f0f23';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.strokeStyle = DIFF[difficulty].wallColor;
+  ctx.lineWidth   = 2;
+  ctx.lineCap     = 'round';
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const cell = maze[r][c], x = c*cs, y = r*cs;
+      ctx.beginPath();
+      if (cell.walls.top)    { ctx.moveTo(x,    y);    ctx.lineTo(x+cs, y);    }
+      if (cell.walls.right)  { ctx.moveTo(x+cs, y);    ctx.lineTo(x+cs, y+cs); }
+      if (cell.walls.bottom) { ctx.moveTo(x,    y+cs); ctx.lineTo(x+cs, y+cs); }
+      if (cell.walls.left)   { ctx.moveTo(x,    y);    ctx.lineTo(x,    y+cs); }
+      ctx.stroke();
+    }
+  }
+
+  // 팩맨 점 그리기
+  if (g.dots) {
+    const dotR = Math.max(2, cs * 0.1);
+    ctx.fillStyle = '#fde047';
+    g.dots.forEach(dot => {
+      if (dot.collected) return;
+      ctx.beginPath();
+      ctx.arc(dot.c*cs + cs/2, dot.r*cs + cs/2, dotR, 0, Math.PI*2);
+      ctx.fill();
+    });
+  }
+
+  // 아이템 그리기 (수집되지 않은 것만)
+  if (g.items) {
+    const itemFs = Math.max(10, Math.floor(cs * 0.55));
+    ctx.font = `${itemFs}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    g.items.forEach(item => {
+      if (item.collected) return;
+      const ix = item.c*cs + cs/2, iy = item.r*cs + cs/2;
+      ctx.fillText(ITEM_TYPES[item.type].emoji, ix, iy);
+    });
+  }
+
+  const half = cs / 2;
+  const fs   = Math.max(10, Math.floor(cs * 0.28));
+  ctx.font          = `bold ${fs}px sans-serif`;
+  ctx.textAlign     = 'center';
+  ctx.textBaseline  = 'middle';
+
+  ctx.fillStyle = '#10b981';
+  ctx.beginPath(); ctx.arc(half, half, cs*0.3, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.fillText('S', half, half);
+
+  const ex = (cols-1)*cs + half, ey = (rows-1)*cs + half;
+  ctx.fillStyle = '#f59e0b';
+  ctx.beginPath(); ctx.arc(ex, ey, cs*0.3, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.fillText('E', ex, ey);
+}
+
+// ── 캐릭터 얼굴 그리기 (드래그 헤드) ──────────────────────
+// happy=true 면 아이템을 먹어서 신난 표정(눈이 ^^ 모양, 입이 더 크게 웃음)
+function drawCharacterFace(ctx, x, y, size, happy) {
+  const r = size * 0.42;
+
+  // 얼굴 (노란 원) — 기쁠 때는 살짝 더 밝은 색 + 더 크게
+  const faceR = happy ? r * 1.12 : r;
+  ctx.fillStyle = happy ? '#fef08a' : '#fde047';
+  ctx.beginPath();
+  ctx.arc(x, y, faceR, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = '#ca8a04';
+  ctx.lineWidth = Math.max(1.5, size * 0.04);
+  ctx.stroke();
+
+  const eyeOffsetX = r * 0.38;
+  const eyeOffsetY = r * 0.15;
+
+  if (happy) {
+    // 기쁜 눈: ^ ^ 모양 곡선
+    ctx.strokeStyle = '#1f2937';
+    ctx.lineWidth = Math.max(1.3, r * 0.14);
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.arc(x - eyeOffsetX, y - eyeOffsetY, r * 0.16, Math.PI, 0, true);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(x + eyeOffsetX, y - eyeOffsetY, r * 0.16, Math.PI, 0, true);
+    ctx.stroke();
+  } else {
+    // 기본 눈: 동그란 점
+    const eyeR = Math.max(1.2, r * 0.13);
+    ctx.fillStyle = '#1f2937';
+    ctx.beginPath();
+    ctx.arc(x - eyeOffsetX, y - eyeOffsetY, eyeR, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(x + eyeOffsetX, y - eyeOffsetY, eyeR, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // 입 — 기쁠 때 더 크게 활짝 웃는 입
+  ctx.strokeStyle = '#1f2937';
+  ctx.lineWidth = Math.max(1.2, r * 0.12);
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  if (happy) {
+    ctx.arc(x, y + r * 0.02, r * 0.55, 0.1 * Math.PI, 0.9 * Math.PI);
+  } else {
+    ctx.arc(x, y + r * 0.05, r * 0.45, 0.15 * Math.PI, 0.85 * Math.PI);
+  }
+  ctx.stroke();
+
+  // 기쁠 때 볼터치 추가
+  if (happy) {
+    ctx.fillStyle = 'rgba(251, 113, 133, 0.55)';
+    const cheekR = r * 0.12;
+    ctx.beginPath();
+    ctx.arc(x - r * 0.62, y + r * 0.12, cheekR, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(x + r * 0.62, y + r * 0.12, cheekR, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+// ── 경로 그리기 (오프스크린 캐시 활용으로 빠른 렌더링) ────
+function redrawPath(g) {
+  // 미로 캐시가 없으면 생성
+  if (!g.mazeCache) {
+    g.mazeCache = document.createElement('canvas');
+    g.mazeCache.width  = g.canvas.width;
+    g.mazeCache.height = g.canvas.height;
+    drawMaze({ ...g, canvas: g.mazeCache });
+  }
+
+  const ctx = g.canvas.getContext('2d');
+  // 캐시된 미로를 바탕에 복사
+  ctx.drawImage(g.mazeCache, 0, 0);
+
+  if (g.path.length < 1) return;
+
+  // 경로 선
+  if (g.path.length >= 2) {
+    ctx.strokeStyle = '#818cf8';
+    ctx.lineWidth   = Math.max(3, g.cs * 0.25);
+    ctx.lineCap     = 'round';
+    ctx.lineJoin    = 'round';
+    ctx.beginPath();
+    g.path.forEach((cell, i) => {
+      const px = cell.c*g.cs + g.cs/2, py = cell.r*g.cs + g.cs/2;
+      i === 0 ? ctx.moveTo(px,py) : ctx.lineTo(px,py);
+    });
+    ctx.stroke();
+  }
+
+  // 캐릭터 얼굴 (경로 끝)
+  const head = g.path[g.path.length - 1];
+  const isHappy = g.happyUntil && Date.now() < g.happyUntil;
+  drawCharacterFace(ctx, head.c*g.cs + g.cs/2, head.r*g.cs + g.cs/2, g.cs, isHappy);
+}
+
+// 미로 캐시 무효화 (아이템 수집 등 미로 표면 변경 시 호출)
+function invalidateMazeCache(g) {
+  g.mazeCache = null;
+}
+
+// ── 벽 통과 가능 여부 ──────────────────────────────────────
+function canMove(g, from, to) {
+  const dr = to.r - from.r, dc = to.c - from.c;
+  if (Math.abs(dr) + Math.abs(dc) !== 1) return false;
+  if (to.r < 0 || to.r >= g.rows || to.c < 0 || to.c >= g.cols) return false;
+  const cell = g.maze[from.r][from.c];
+  if (dr === -1) return !cell.walls.top;
+  if (dr ===  1) return !cell.walls.bottom;
+  if (dc === -1) return !cell.walls.left;
+  if (dc ===  1) return !cell.walls.right;
+  return false;
+}
+
+// ── 캔버스 좌표 → 셀 변환 ─────────────────────────────────
+function clientToCell(g, clientX, clientY) {
+  const rect = g.canvas.getBoundingClientRect();
+  const scaleX = g.canvas.width  / rect.width;
+  const scaleY = g.canvas.height / rect.height;
+  const x = (clientX - rect.left) * scaleX;
+  const y = (clientY - rect.top)  * scaleY;
+  return { c: Math.floor(x / g.cs), r: Math.floor(y / g.cs) };
+}
+
+// ── 이동 처리 ──────────────────────────────────────────────
+// 마우스가 현재 경로 끝(last)에 인접한 한 칸으로 이동했을 때만 선을 추가.
+// 벽에 막혔거나 인접하지 않은 칸이면 아무것도 하지 않고 drawing 유지.
+function processMove(g, clientX, clientY) {
+  if (!g.drawing || g.solved || g.timeUp || !isMyTurn(g) || !gameRunning) return;
+  const cell = clientToCell(g, clientX, clientY);
+  if (cell.r < 0 || cell.r >= g.rows || cell.c < 0 || cell.c >= g.cols) return;
+
+  const last = g.path[g.path.length - 1];
+  if (cell.r === last.r && cell.c === last.c) return;
+
+  // 인접하지 않은 셀은 되감기도 이동도 완전 차단
+  const dr = Math.abs(cell.r - last.r);
+  const dc = Math.abs(cell.c - last.c);
+  if (dr + dc !== 1) return;
+
+  // 벽이 있으면 이동/되감기 모두 불가
+  if (!canMove(g, last, cell)) return;
+
+  // 이미 지나온 인접 셀(벽 없음) → 경로 되감기
+  const backIdx = g.path.findIndex(p => p.r === cell.r && p.c === cell.c);
+  if (backIdx !== -1) {
+    g.path = g.path.slice(0, backIdx + 1);
+    redrawPath(g);
+    return;
+  }
+
+  g.path.push(cell);
+
+  // 팩맨 점 수집 체크 (1점, 조용히)
+  if (g.dots) {
+    const dot = g.dots.find(d => !d.collected && d.c === cell.c && d.r === cell.r);
+    if (dot) {
+      dot.collected = true;
+      g.score += 1;
+      updateScoreDisplay(g);
+      spawnDotPopup(g, cell);
+      invalidateMazeCache(g);
+    }
+  }
+
+  // 아이템 수집 체크
+  if (g.items) {
+    const item = g.items.find(it => !it.collected && it.c === cell.c && it.r === cell.r);
+    if (item) {
+      item.collected = true;
+      const info = ITEM_TYPES[item.type];
+      g.score += info.score;
+      // 시계 아이템: 남은 시간 +5초
+      if (info.timeBonus && isMyTurn(g)) {
+        const limitMs    = DIFF[difficulty].timeLimit * 1000;
+        const elapsedMs  = Date.now() - startTime;
+        const remaining  = limitMs - elapsedMs;
+        const maxBonus   = limitMs - remaining; // 현재 경과한 시간만큼만 되돌릴 수 있음
+        const bonusMs    = Math.min(info.timeBonus * 1000, maxBonus);
+        startTime += bonusMs;
+      }
+      updateScoreDisplay(g);
+      playEatSound(item.type);
+      spawnItemPopup(g, cell, item.type);
+      invalidateMazeCache(g); // 아이템 사라진 미로를 다시 캐싱
+      // 0.5초간 기쁜 표정으로 전환
+      g.happyUntil = Date.now() + 500;
+      clearTimeout(g.happyTimer);
+      g.happyTimer = setTimeout(() => { redrawPath(g); }, 500);
+    }
+  }
+
+  redrawPath(g);
+
+  if (cell.r === g.rows-1 && cell.c === g.cols-1) {
+    g.solved  = true;
+    g.drawing = false;
+    const elapsedMs = Date.now() - startTime;
+    const limitMs   = DIFF[difficulty].timeLimit * 1000;
+    g.remainingSec  = Math.max(0, Math.floor((limitMs - elapsedMs) / 1000));
+
+    if (gameMode === 'duo') {
+      gameRunning = false;
+      clearInterval(timerInterval);
+    }
+
+    // 혼자서 모드: 클리어 시 최고점수 저장 (점수 + 남은시간초)
+    let isNewRecord = false;
+    if (gameMode === 'single') {
+      const finalScore = g.score + g.remainingSec;
+      const prevBest   = loadBestScore(); // 저장 전에 반드시 먼저 읽기
+      if (finalScore > prevBest) {
+        localStorage.setItem(bestScoreKey(), finalScore); // 직접 저장
+        isNewRecord = true;
+        updateBestScoreDisplay();
+      }
+    }
+
+    setTimeout(() => {
+      const finalScore = g.score + g.remainingSec;
+      const scoreText  = '걸린 시간: ' + formatTime(elapsedMs) + '  |  최종 점수: ' + finalScore + '점 (아이템 ' + g.score + '점 + 남은시간 ' + g.remainingSec + '초)';
+      document.getElementById(g.timeId).textContent = scoreText + (isNewRecord ? '  🏆 신기록!' : '');
+      document.getElementById(g.overlayId).classList.add('show');
+
+      if (isNewRecord) {
+        launchConfetti(g.canvas.parentElement);
+        playClearSound();
+      }
+
+      if (gameMode === 'duo') {
+        setTimeout(advanceTurn, isNewRecord ? 3000 : 1500);
+      }
+    }, 200);
+  }
+}
+
+// ── 점수 표시 업데이트 (헤더 또는 패널) ───────────────────
+function updateScoreDisplay(g) {
+  const scoreEl = document.getElementById(g.scoreId);
+  if (scoreEl) scoreEl.textContent = g.score + '점';
+}
+
+// ── 아이템 수집 팝업 이펙트 ────────────────────────────────
+function spawnItemPopup(g, cell, type) {
+  const panel = g.canvas.parentElement;
+  const canvasRect = g.canvas.getBoundingClientRect();
+  const panelRect  = panel.getBoundingClientRect();
+
+  // 캔버스 위에서 셀 중앙 좌표를 패널 기준으로 환산
+  const scaleX = g.canvas.width  / canvasRect.width;
+  const scaleY = g.canvas.height / canvasRect.height;
+  const cellCx = (cell.c * g.cs + g.cs / 2) / scaleX;
+  const cellCy = (cell.r * g.cs + g.cs / 2) / scaleY;
+  const left = canvasRect.left - panelRect.left + cellCx;
+  const top  = canvasRect.top  - panelRect.top  + cellCy;
+
+  const info = ITEM_TYPES[type];
+  const popupText = info.timeBonus ? '+' + info.timeBonus + '초!' : '+' + info.score;
+  const el = document.createElement('div');
+  el.className = 'item-popup';
+  el.style.left = left + 'px';
+  el.style.top  = top  + 'px';
+  el.innerHTML =
+    '<span class="item-popup-emoji">' + info.emoji + '</span>' +
+    '<span class="item-popup-score">' + popupText + '</span>';
+
+  panel.appendChild(el);
+  el.addEventListener('animationend', () => el.remove());
+}
+
+// ── 팩맨 점 수집 팝업 (+1, 작고 빠르게) ────────────────────
+function spawnDotPopup(g, cell) {
+  const panel      = g.canvas.parentElement;
+  const canvasRect = g.canvas.getBoundingClientRect();
+  const panelRect  = panel.getBoundingClientRect();
+  const scaleX = g.canvas.width  / canvasRect.width;
+  const scaleY = g.canvas.height / canvasRect.height;
+  const cx   = (cell.c * g.cs + g.cs / 2) / scaleX;
+  const cy   = (cell.r * g.cs + g.cs / 2) / scaleY;
+  const left = canvasRect.left - panelRect.left + cx;
+  const top  = canvasRect.top  - panelRect.top  + cy;
+
+  const el = document.createElement('div');
+  el.className   = 'dot-popup';
+  el.textContent = '+1';
+  el.style.left  = left + 'px';
+  el.style.top   = top  + 'px';
+  panel.appendChild(el);
+  el.addEventListener('animationend', () => el.remove());
+}
+
+// ── 둘이서 모드: 이 게임(g)이 현재 턴인지 확인 ────────────
+function isMyTurn(g) {
+  if (gameMode !== 'duo') return true;
+  const playerNum = g.canvas.id === 'canvas1' ? 1 : 2;
+  return playerNum === currentTurn;
+}
+
+// ── 이벤트 연결 ────────────────────────────────────────────
+// • mousedown  → 캔버스에 직접 (출발셀 체크)
+// • mousemove  → document (캔버스 밖에서도 드래그 지속)
+// • mouseup    → document (캔버스 밖에서 버튼을 놓아도 종료)
+// → resize 이벤트를 전혀 사용하지 않으므로 미로 재생성 없음
+function attachCanvasEvents(g) {
+  const canvas = g.canvas;
+
+  // 마우스 다운 — 출발(0,0) 또는 현재 경로 끝점에서 이어서 시작
+  canvas.addEventListener('mousedown', (e) => {
+    if (g.solved || !isMyTurn(g) || !gameRunning) return;
+    e.preventDefault();
+    const cell = clientToCell(g, e.clientX, e.clientY);
+    const tail = g.path.length > 0 ? g.path[g.path.length - 1] : null;
+    if (cell.r === 0 && cell.c === 0) {
+      g.drawing = true;
+      g.path    = [{ r:0, c:0 }];
+      redrawPath(g);
+    } else if (tail && cell.r === tail.r && cell.c === tail.c) {
+      g.drawing = true;
+    }
+  });
+
+  // 터치
+  canvas.addEventListener('touchstart', (e) => {
+    if (g.solved || !isMyTurn(g) || !gameRunning) return;
+    e.preventDefault();
+    const t    = e.touches[0];
+    const cell = clientToCell(g, t.clientX, t.clientY);
+    const tail = g.path.length > 0 ? g.path[g.path.length - 1] : null;
+    if (cell.r === 0 && cell.c === 0) {
+      g.drawing = true;
+      g.path    = [{ r:0, c:0 }];
+      redrawPath(g);
+    } else if (tail && cell.r === tail.r && cell.c === tail.c) {
+      g.drawing = true;
+    }
+  }, { passive: false });
+
+  canvas.addEventListener('touchmove', (e) => {
+    if (!isMyTurn(g) || !gameRunning) return;
+    e.preventDefault();
+    const t = e.touches[0];
+    processMove(g, t.clientX, t.clientY);
+  }, { passive: false });
+
+  canvas.addEventListener('touchend', () => { g.drawing = false; });
+}
+
+// ── document 레벨 마우스 이벤트 (드래그가 캔버스 밖으로 나가도 처리) ──
+document.addEventListener('mousemove', (e) => {
+  const anyDrawing = Object.values(games).some(g => g.drawing);
+  if (anyDrawing) e.preventDefault();
+  for (const id in games) processMove(games[id], e.clientX, e.clientY);
+}, { passive: false });
+
+document.addEventListener('mouseup', () => {
+  for (const id in games) games[id].drawing = false;
+});
+
+// 드래그 중 텍스트 선택, 브라우저 드래그 동작 완전 차단
+document.addEventListener('selectstart', (e) => {
+  const anyDrawing = Object.values(games).some(g => g.drawing);
+  if (anyDrawing) e.preventDefault();
+});
+document.addEventListener('dragstart', (e) => {
+  e.preventDefault();
+});
+</script>
+</body>
+</html>
